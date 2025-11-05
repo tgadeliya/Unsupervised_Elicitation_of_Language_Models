@@ -18,24 +18,17 @@ class TruthfulQAExample:
         return dedent(f"""
         Question: {self.question}
         Claim: {self.choice}
-        This claim is""")
+        This claim is """)
 
     def template_with_label(self, label: int | None = None) -> str:
-        if label is None:  
+        if label is None:
             label = self.label  # use golden label
-        
+
         label_str = "True" if label else "False"
         return dedent(f"""
         Question: {self.question}
         Claim: {self.choice}
-        This claim is {label_str}.""")
-
-    @property
-    def paper_template(self):
-        return dedent(f"""
-        Question: {self.question}
-        Claim: {self.choice}
-        This claim is [True/False] """)
+        This claim is {label_str}""")
 
 
 class TruthfulQA:
