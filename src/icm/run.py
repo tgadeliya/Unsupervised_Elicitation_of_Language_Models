@@ -1,7 +1,7 @@
 from importlib.resources import files
 from pathlib import Path
 
-from matplotlib import use
+import numpy as np
 
 from icm.dataset import TruthfulQA
 from icm.metrics import accuracy
@@ -44,7 +44,7 @@ def replicate_figure_1_truthfulqa():
 
     for random_seed in random_seeds:
         train_dataset = dataset.get_dataset_split("train")
-
+        np.random.default_rng(random_seed).shuffle(train_dataset)
         many_shot_prompt = "\n".join([ex.template_with_label() for ex in train_dataset])
         many_shot_base_model = BaseModel(
             model_name=LLAMA_BASE,
