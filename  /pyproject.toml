@@ -1,0 +1,14 @@
+[project]
+name = "icm"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Tsimur Hadeliya", email = "tgadeliya@gmail.com" }
+]
+requires-python = ">=3.13.3"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
