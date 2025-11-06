@@ -21,10 +21,10 @@ def replicate_figure_1_truthfulqa():
     true_labels = [ex.label for ex in test_dataset]
 
     # Zero-shot
-    # hhh_prompt = (files("icm.prompts") / "system_prompt").read_text("utf-8")
-    # base_model = BaseModel(model_name=LLAMA_BASE, system_prompt=hhh_prompt)
-    # preds_base = base_model.predict(test_dataset)
-    # accuracy_dict["Zero-shot"] = [accuracy(preds=preds_base, true_labels=true_labels)]
+    hhh_prompt = (files("icm.prompts") / "system_prompt").read_text("utf-8")
+    base_model = BaseModel(model_name=LLAMA_BASE, system_prompt=hhh_prompt)
+    preds_base = base_model.predict(test_dataset)
+    accuracy_dict["Zero-shot"] = [accuracy(preds=preds_base, true_labels=true_labels)]
 
     # Zero-shot (chat)
     chat_system_prompt = (
@@ -38,38 +38,32 @@ def replicate_figure_1_truthfulqa():
     preds_chat = chat_model.predict(test_dataset)
     accuracy_dict["Zero-shot (chat)"] = [accuracy(preds=preds_chat, true_labels=true_labels)]
 
-    random_seeds = [25, 7, 14]
+    random_seeds = [14, 7, 25]
     # Golden Supervision (many-shot)
-    # many_shot_accuracy_rs = []
-    # for random_seed in random_seeds:
-    #     train_dataset = dataset.get_dataset_split("train")
-    #     np.random.default_rng(random_seed).shuffle(train_dataset)  # type: ignore
-    #     many_shot_prompt = "\n".join([ex.template_with_label() for ex in train_dataset])
-    #     many_shot_base_model = BaseModel(
-    #         model_name=LLAMA_BASE,
-    #         system_prompt=many_shot_prompt,
-    #     )
-    #     preds_many_shot = many_shot_base_model.predict(test_dataset)
-    #     many_shot_accuracy_rs.append(accuracy(preds=preds_many_shot, true_labels=true_labels))
-    # accuracy_dict["Golden supervision"] = many_shot_accuracy_rs
+    many_shot_accuracy_rs = []
+    for random_seed in random_seeds:
+        train_dataset = dataset.get_dataset_split("train")
+        np.random.default_rng(random_seed).shuffle(train_dataset)  # type: ignore
+        many_shot_prompt = "\n".join([ex.template_with_label() for ex in train_dataset])
+        many_shot_base_model = BaseModel(
+            model_name=LLAMA_BASE,
+            system_prompt=many_shot_prompt,
+        )
+        preds_many_shot = many_shot_base_model.predict(test_dataset)
+        many_shot_accuracy_rs.append(accuracy(preds=preds_many_shot, true_labels=true_labels))
+    accuracy_dict["Golden supervision"] = many_shot_accuracy_rs
+
 
     # ICM method
-    # icm_accuracy_rs = []
-    # for random_seed in random_seeds:
-    #     icm_model = ICMModel(model_name=LLAMA_BASE, random_seed=random_seed)
-    #     icm_pred = icm_model.predict(
-    #         dataset=test_dataset,
-    #         init_temperature=1.0,
-    #         final_temperature=0.1,
-    #         cooling_rate=0.01,
-    #         K=8,
-    #     )
-    #     icm_accuracy_rs.append(accuracy(preds=icm_pred, true_labels=true_labels))
-    # accuracy_dict["ICM"] = icm_accuracy_rs
+    icm_accuracy_rs = []
+    for random_seed in random_seeds:
+        icm_model = ICMModel(model_name=LLAMA_BASE, random_seed=random_seed)
+        icm_pred = icm_model.predict(dataset=test_dataset,max_iterations=1000)
+        icm_accuracy_rs.append(accuracy(preds=icm_pred, true_labels=true_labels))
+    accuracy_dict["ICM"] = icm_accuracy_rs
 
-    'Zero-shot (chat)': [77.0]
     print(accuracy_dict)
-    # plot_truthfulqa_single(accuracy_dict, "truthfulqa_without_icm.png")
+    plot_truthfulqa_single(accuracy_dict, "truthfulqa.png")
 
 
 def main():
