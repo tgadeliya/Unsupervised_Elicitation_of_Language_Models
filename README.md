@@ -1,4 +1,4 @@
-# Unsupervised_Elicitation_of_Language_Models
+# Unsupervised Elicitation of Language Models
 
 This repository contains a partial implementation of the paper "Unsupervised Elicitation of Language Models".
 
@@ -19,6 +19,10 @@ Use the run.py file to initiate the evaluation. This will launch the evaluation 
 ```
 uv run src/icm/run.py
 ```
+## TruthfulQA results
+![figure1](truthfulqa.png)
+
+img
 
 ## Implementation details
 
@@ -34,8 +38,7 @@ The original paper does not provide a clear description of the zero-shot setup. 
 | Chat prompt style                                                |  Accuracy |
 | ------------------------------------------------------ | --------: |
 | `Only [True\False] template`                                |       0.0 |
-| `Instruction & [True\False] template` |      37.5 |
-| `Only instruction`              | 43.36 |
+| `Only instruction`              | 69.36 |
 | `No instruction and paper template`                    |  7.42 |
 
 
@@ -50,6 +53,6 @@ Because the entire training dataset can fit into the model context window, I did
 
 - Paper algorithm and official implementation diverges in couple of places. Based on the task, I stick to Algorithm 1 description and tried to mention in the code all places where this happened
 
-- Without consistency fix, alpha parameter is not useful. I omit it, because it makes diff value too low and for negative S
+- Without consistency fix, alpha parameter is not useful. I omit it
 
-TODO: experiment on train dataset to verify what is better
+- Ignored impovement of caching calculations of mutual predictability due to time constraints and assumption that Hyperbolic is using prompt caching
