@@ -163,7 +163,7 @@ class ICMModel:
             delta = U_hat - U
             if delta >= 0 or self.rng.uniform(0, 1) < math.exp(delta / T):
                 labels = labels_hat
-            print(f"Labels after {step=}: {labels}")
+            print(f"Labels after {step=}: {labels}") 
         return labels  # type: ignore
 
     def calculate_predictability_single(
@@ -196,8 +196,8 @@ class ICMModel:
         # ignore alpha
         return mp_score
 
-    def _sample_idx_to_label(self, labels: list[int | None]) -> int:
-        weights = [100 if l is None else 1 for l in labels]
+    def _sample_idx_to_label(self, labels: list[int | None], unlabeled_boost: int = 10) -> int:
+        weights = [unlabeled_boost if l is None else 1 for l in labels]
         weights = np.array(weights) / np.sum(weights)
         return self.rng.choice(len(labels), p=weights)
 
