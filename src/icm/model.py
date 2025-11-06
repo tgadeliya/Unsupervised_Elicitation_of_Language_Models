@@ -28,9 +28,7 @@ class Model:
         temperature: float = 0.0,
     ) -> list[int]:
         preds = []
-        for example in tqdm(
-            dataset, desc="Running prediction for model: " + self.model_name
-        ):
+        for example in tqdm(dataset, desc="Running prediction for model: " + self.model_name):
             response = self.generate(example=example, temperature=temperature)
             pred = self.response_to_label(response)
             preds.append(pred)
@@ -64,9 +62,7 @@ class BaseModel(Model):
             return -1
         return 1 if diff > 0 else 0
 
-    def extract_diff_true_false_probs(
-        self, top_logprobs: dict[str, float], eps=1e-5
-    ) -> float | None:
+    def extract_diff_true_false_probs(self, top_logprobs: dict[str, float], eps=1e-5) -> float | None:
         """Logic adapted from the official repository"""
         probs = {"false": eps, "true": eps}
         for token, logprob in top_logprobs.items():
@@ -87,7 +83,7 @@ class ChatModel(Model):
         model_name: str,
         system_prompt: str = "",
         use_paper_template: bool = False,
-        use_system_prompt: bool = False,
+        use_system_prompt: bool = True,
     ):
         super().__init__(model_name, system_prompt)
         self.use_paper_template = use_paper_template
@@ -144,14 +140,12 @@ class ICMModel:
         final_temperature: float = 0.01,
         cooling_rate: float = 0.99,
         K: int = 8,
+        max_iterations: int = 1000,
     ) -> list[int]:
         N = len(dataset)
         labels = self._init_labels(N, K)
 
-        # Add weights for convergence
-        # Without logical consistency
-        idxs_to_label = self.rng.choice(N, N, replace=False)
-        for step, idx_to_label in tqdm(enumerate(idxs_to_label, start=1), "ICM search"):
+        for step in tqdm(range(1, max_iterations + 1), "ICM search"):
             # Followed implementation from the paper Algo 1,
             # despite in the repo it is different
             T = max(
@@ -160,6 +154,7 @@ class ICMModel:
             )
 
             labels_hat = labels.copy()
+            idx_to_label = self._sample_idx_to_label(labels)
             labels_hat[idx_to_label] = self.calculate_predictability_single(  # type: ignore
                 idx_to_label, dataset, labels_hat
             )["label"]
@@ -190,9 +185,7 @@ class ICMModel:
             "logprobs_per_label": logprobs_per_label,
         }
 
-    def calculate_mutual_predictability(
-        self, dataset: list[TruthfulQAExample], labels: list[int | None]
-    ) -> float:
+    def calculate_mutual_predictability(self, dataset: list[TruthfulQAExample], labels: list[int | None]) -> float:
         mp_score = 0.0
         for idx in range(len(labels)):
             if labels[idx] is None or labels[idx] == -1:
@@ -202,6 +195,11 @@ class ICMModel:
             mp_score += label_logprob
         # ignore alpha
         return mp_score
+
+    def _sample_idx_to_label(self, labels: list[int | None]) -> int:
+        weights = [100 if l is None else 1 for l in labels]
+        weights = np.array(weights) / np.sum(weights)
+        return self.rng.choice(len(labels), p=weights)
 
     def _init_labels(self, N: int, K: int) -> list[int | None]:
         "Create empty label set with K randomly selected and labeled examples."
@@ -213,9 +211,7 @@ class ICMModel:
         labels[initialization_idxs] = init_labels
         return labels.tolist()
 
-    def _compose_prompt(
-        self, idx: int, dataset: list[TruthfulQAExample], labels: list[int | None]
-    ) -> str:
+    def _compose_prompt(self, idx: int, dataset: list[TruthfulQAExample], labels: list[int | None]) -> str:
         context = []
         for lidx, label in enumerate(labels):
             # Use only correctly (true or False) labeled
@@ -236,9 +232,7 @@ class ICMModel:
         )
         return response.choices[0].logprobs.top_logprobs[0]  # type: ignore
 
-    def _get_logprobs_per_label(
-        self, logprobs: dict[str, float], eps=1e-5
-    ) -> None | dict[int, float]:
+    def _get_logprobs_per_label(self, logprobs: dict[str, float], eps=1e-5) -> None | dict[int, float]:
         """Get logprobs for true and false label.
         Logic and eps default value adapted from the official implementation"""
         probs = {0: eps, 1: eps}
